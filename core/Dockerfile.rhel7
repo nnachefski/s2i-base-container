@@ -42,11 +42,11 @@ ENV BASH_ENV=${APP_ROOT}/etc/scl_enable \
 # Also setup the 'openshift' user that is used for the build execution and for the
 # application runtime execution.
 # TODO: Use better UID and GID values
-RUN yum install -y yum-utils && \
-  yum-config-manager --disable \* &> /dev/null && \
-  yum-config-manager --enable rhel-7-server-rpms && \
-  yum-config-manager --enable rhel-7-server-optional-rpms && \
-  INSTALL_PKGS="bsdtar \
+
+## TODO: make some logic here to acertain if image has proper subs already.  Possibly include some sort of sh script to do this.
+#RUN yum-config-manager --disable \* &> /dev/null && yum-config-manager --enable rhel-7-server-rpms && yum-config-manager --enable rhel-7-server-optional-rpms
+
+RUN INSTALL_PKGS="bsdtar \
   findutils \
   gettext \
   scl-utils \
@@ -70,7 +70,6 @@ ENTRYPOINT ["container-entrypoint"]
 CMD ["base-usage"]
 
 # Reset permissions of modified directories and add default user
-RUN rpm-file-permissions && \
-  useradd -u 1001 -r -g 0 -d ${HOME} -s /sbin/nologin \
-      -c "Default Application User" default && \
-  chown -R 1001:0 ${APP_ROOT}
+RUN rpm-file-permissions 
+## This broke for some reason after removing the yum-config-manager lines.  added check to see if user exists first.
+RUN getent passwd default || useradd -u 1001 -r -g 0 -d ${HOME} -s /sbin/nologin -c "Default Application User" default && chown -R 1001:0 ${APP_ROOT}
